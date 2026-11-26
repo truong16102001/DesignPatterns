@@ -1,4 +1,5 @@
-﻿using DesignPatterns.Creational.Singleton;
+﻿using DesignPatterns.Behavioral.Strategy;
+using DesignPatterns.Creational.Singleton;
 
 namespace DesignPatterns.Structural.Facade
 {
@@ -36,14 +37,19 @@ namespace DesignPatterns.Structural.Facade
         }
 
         // Facade: bên gọi chỉ dùng PlaceOrder(). Method này điều phối kho, thanh toán và xác nhận.
-        public bool PlaceOrder(string email, int quantity, decimal total)
+        public bool PlaceOrder(string email, int quantity, decimal total, IPaymentStrategy payment)
         {
             if (!_inventory.HasStock(quantity))
             {
                 return false;
             }
 
-            _payment.Charge(total);
+            // Strategy: gọi cùng một Pay(), còn đối tượng được truyền vào sẽ thanh toán theo cách của nó.
+            if (!payment.Pay(total))
+            {
+                return false;
+            }
+
             _confirmation.Send(email);
             return true;
         }

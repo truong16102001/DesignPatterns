@@ -1,3 +1,4 @@
+using DesignPatterns.Behavioral.Strategy;
 using DesignPatterns.Creational.FactoryMethod;
 using DesignPatterns.Creational.Singleton;
 using DesignPatterns.Structural.Adapter;
@@ -19,6 +20,12 @@ line.Notify("Đơn hàng đã được xác nhận");
 INotification legacySms = new LegacySmsAdapter(new LegacySmsSender());
 legacySms.Send("Đơn hàng đã được xác nhận");
 
+// facade pattern demo
+//var checkout = CheckoutService.Instance;
+//var result = checkout.PlaceOrder("demo@example.com", 2, 150_000m);
+//if(result) Console.WriteLine("Order successfully");
+
+// Hai đơn dùng chung CheckoutService. Mỗi đơn tự chọn cách thanh toán.
 var checkout = CheckoutService.Instance;
-var result = checkout.PlaceOrder("demo@example.com", 2, 150_000m);
-if(result) Console.WriteLine("Order successfully");
+checkout.PlaceOrder("demo@example.com", 2, 150_000m, new CardPayment());
+checkout.PlaceOrder("demo@example.com", 1, 80_000m, new BankTransferPayment());

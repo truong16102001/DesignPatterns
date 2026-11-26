@@ -115,16 +115,16 @@ Dùng Facade để cung cấp một cách gọi đơn giản cho thao tác cần
 
 ### Đặc trưng khi triển khai
 
-1. Tách từng việc vào lớp riêng. `InventoryService` kiểm tra tồn kho, `PaymentService` xử lý thanh toán, `ConfirmationService` gửi xác nhận.
-2. [`CheckoutService`](DesignPatterns.Structural/Facade/CheckoutService.cs) tạo ba service trong constructor và điều phối chúng trong `PlaceOrder()`. `Instance` là phần Singleton dùng để chia sẻ cùng một `CheckoutService`.
+1. Tách từng việc ra riêng. `InventoryService` kiểm tra tồn kho, `IPaymentStrategy` cung cấp cách thanh toán, `ConfirmationService` gửi xác nhận.
+2. [`CheckoutService`](DesignPatterns.Structural/Facade/CheckoutService.cs) điều phối các bước trong `PlaceOrder()`. `Instance` là phần Singleton dùng để chia sẻ cùng một `CheckoutService`.
 
 ### Luồng chạy
 
-1. `Program.cs` gọi `PlaceOrder()` với email, số lượng và tổng tiền.
+1. `Program.cs` gọi `PlaceOrder()` với email, số lượng, tổng tiền và strategy thanh toán.
 2. Facade kiểm tra tồn kho. Nếu thiếu hàng, trả về `false` và dừng trước bước thanh toán.
-3. Nếu đủ hàng, Facade gọi thanh toán rồi gửi xác nhận. Hai bước này được mô phỏng bằng console và `PlaceOrder()` trả về `true`.
+3. Nếu đủ hàng, Facade gọi thanh toán. Khi thanh toán thành công, Facade gửi xác nhận và trả về `true`.
 
-Kho trong demo mặc định có `0` món, nên đơn `2` món trả về `false`. Để thử nhánh thành công, đặt `availableStock: 5` khi tạo `InventoryService`. In kết quả `PlaceOrder()` để thấy rõ `true` hoặc `false`.
+Trong demo, `CheckoutService` khởi tạo kho với `5` món. Đơn `2` món đi tiếp đến thanh toán, còn đơn `6` món dừng ở bước kiểm tra kho.
 
 ### Ưu điểm
 
@@ -139,3 +139,34 @@ Kho trong demo mặc định có `0` món, nên đơn `2` món trả về `false
 
 - Đặt hàng trong ứng dụng bán hàng.
 - Đăng ký tài khoản, tạo hồ sơ và gửi email chào mừng.
+
+## Strategy
+
+### Mục đích sử dụng
+
+Dùng Strategy khi một việc có nhiều cách thực hiện và cần chọn cách phù hợp lúc chạy. Ví dụ trong bài Viblo là xuất cùng một thiết kế sang PNG, JPG hoặc PDF. Trong demo này, một đơn hàng có thể thanh toán bằng thẻ hoặc chuyển khoản.
+
+### Đặc trưng khi triển khai
+
+1. **Strategy** là `IPaymentStrategy`, quy định thao tác chung `bool Pay(decimal amount)`.
+2. **Concrete Strategy** là `CardPayment` và `BankTransferPayment`. Mỗi lớp triển khai `Pay()` theo cách riêng.
+3. **Context** là `CheckoutService`. Trong `PlaceOrder()`, nó gọi `payment.Pay(total)` qua interface.
+4. **Client** là nơi chọn strategy. Demo chọn trong `Program.cs`, còn ứng dụng thực tế có thể chọn theo phương thức người dùng chọn trên màn hình thanh toán.
+
+### Luồng chạy
+
+1. Bên gọi truyền strategy vào `PlaceOrder()` cho từng đơn.
+2. Facade kiểm tra kho rồi gọi `Pay()`. Nếu thiếu hàng hoặc `Pay()` trả về `false`, luồng dừng trước bước gửi xác nhận.
+3. Nếu `Pay()` trả về `true`, Facade gửi xác nhận. Hai strategy trong demo chỉ in ra console và mô phỏng thanh toán thành công.
+
+### Strategy thể hiện ở đâu?
+
+`Program.cs` gọi `PlaceOrder()` hai lần trên cùng `CheckoutService`. Lần đầu truyền `CardPayment` nên console in `[Thẻ]`. Lần sau truyền `BankTransferPayment` nên console in `[Chuyển khoản]`. Cả hai đều đi qua cùng một dòng `payment.Pay(total)`.
+
+Trong demo Factory Method, lớp con ghi đè `CreateNotification()` để quyết định **tạo đối tượng nào**. Trong demo Strategy, `Program.cs` truyền sẵn đối tượng để quyết định **thanh toán theo cách nào**.
+
+### Ứng dụng thực tế và kết hợp pattern
+
+- **Thanh toán:** UI hoặc API chọn strategy theo phương thức thanh toán của đơn. Facade giữ luồng kiểm tra kho → thanh toán → xác nhận. Vì Facade hiện là Singleton, truyền strategy vào từng lần gọi để các đơn có thể dùng cách thanh toán khác nhau.
+- **Xuất báo cáo:** Chọn `CsvExportStrategy` hoặc `PdfExportStrategy` theo định dạng người dùng yêu cầu. Phần lấy dữ liệu báo cáo giữ nguyên.
+- **Kết hợp Adapter:** Nếu cổng thanh toán bên thứ ba có API riêng, strategy có thể gọi qua một Adapter để chuyển từ lời gọi của ứng dụng sang lời gọi của SDK.
