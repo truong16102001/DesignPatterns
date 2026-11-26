@@ -1,0 +1,10 @@
+﻿namespace DesignPatterns.Creational.FactoryMethod
+{
+    public class EmailNotification : INotification
+    {
+        public void Send(string message)
+        {
+            Console.WriteLine($"[Email] {message}");
+        }
+    }
+}
