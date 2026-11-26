@@ -1,2 +1,6 @@
-﻿// See https://aka.ms/new-console-template for more information
-Console.WriteLine("Hello, World!");
+﻿using DesignPatterns.Creational.Singleton;
+
+var first = ApplicationSettings.Instance;
+var second = ApplicationSettings.Instance;
+
+Console.WriteLine(object.ReferenceEquals(first, second)); // kì vọng là true
