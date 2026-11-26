@@ -106,3 +106,36 @@ Dùng Adapter để kết nối code hiện tại với một lớp có API khá
 
 - Kết nối thư viện gửi SMS cũ với hệ thống thông báo hiện tại.
 - Kết nối cổng thanh toán của đối tác có `MakePayment()` với ứng dụng đang gọi `Pay()`.
+
+## Facade
+
+### Mục đích sử dụng
+
+Dùng Facade để cung cấp một cách gọi đơn giản cho thao tác cần phối hợp nhiều lớp. Trong demo, bên gọi dùng `CheckoutService.Instance.PlaceOrder()` để kiểm tra tồn kho, thanh toán và gửi xác nhận.
+
+### Đặc trưng khi triển khai
+
+1. Tách từng việc vào lớp riêng. `InventoryService` kiểm tra tồn kho, `PaymentService` xử lý thanh toán, `ConfirmationService` gửi xác nhận.
+2. [`CheckoutService`](DesignPatterns.Structural/Facade/CheckoutService.cs) tạo ba service trong constructor và điều phối chúng trong `PlaceOrder()`. `Instance` là phần Singleton dùng để chia sẻ cùng một `CheckoutService`.
+
+### Luồng chạy
+
+1. `Program.cs` gọi `PlaceOrder()` với email, số lượng và tổng tiền.
+2. Facade kiểm tra tồn kho. Nếu thiếu hàng, trả về `false` và dừng trước bước thanh toán.
+3. Nếu đủ hàng, Facade gọi thanh toán rồi gửi xác nhận. Hai bước này được mô phỏng bằng console và `PlaceOrder()` trả về `true`.
+
+Kho trong demo mặc định có `0` món, nên đơn `2` món trả về `false`. Để thử nhánh thành công, đặt `availableStock: 5` khi tạo `InventoryService`. In kết quả `PlaceOrder()` để thấy rõ `true` hoặc `false`.
+
+### Ưu điểm
+
+- Nơi gọi chỉ cần biết `PlaceOrder()` và các tham số cần truyền.
+- Thứ tự xử lý nằm ở một chỗ, nên nhiều màn hình có thể dùng chung quy trình đặt hàng.
+
+### Nhược điểm
+
+- Facade dễ phình to nếu gom nhiều quy trình khác nhau vào cùng một lớp.
+
+### Ứng dụng thực tế
+
+- Đặt hàng trong ứng dụng bán hàng.
+- Đăng ký tài khoản, tạo hồ sơ và gửi email chào mừng.
