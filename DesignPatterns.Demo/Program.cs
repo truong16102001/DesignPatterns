@@ -1,5 +1,6 @@
 using DesignPatterns.Creational.FactoryMethod;
 using DesignPatterns.Creational.Singleton;
+using DesignPatterns.Structural.Adapter;
 
 var first = ApplicationSettings.Instance;
 var second = ApplicationSettings.Instance;
@@ -13,3 +14,6 @@ NotificationService line = new LineNotificationService();
 email.Notify("Đơn hàng đã được xác nhận");
 sms.Notify("Đơn hàng đã được xác nhận");
 line.Notify("Đơn hàng đã được xác nhận");
+
+INotification legacySms = new LegacySmsAdapter(new LegacySmsSender());
+legacySms.Send("Đơn hàng đã được xác nhận");

@@ -74,3 +74,35 @@ Ví dụ, `return new LineNotification();` hợp lệ vì `LineNotification` tri
 
 - Gửi thông báo qua Email, SMS hoặc Push.
 - Xuất cùng một báo cáo sang PDF hoặc CSV.
+
+## Adapter
+
+### Mục đích sử dụng
+
+Dùng Adapter để kết nối code hiện tại với một lớp có API khác. Trong demo, ứng dụng gọi `INotification.Send(message)`, còn thư viện SMS cũ chỉ có `SendText(message)`. Adapter nối hai cách gọi này mà không cần sửa thư viện cũ.
+
+### Đặc trưng khi triển khai
+
+1. Dùng `INotification` làm interface mà ứng dụng mong đợi.
+2. [`LegacySmsSender`](DesignPatterns.Structural/Adapter/LegacySmsSender.cs) mô phỏng thư viện cũ và cung cấp `SendText(message)`.
+3. [`LegacySmsAdapter`](DesignPatterns.Structural/Adapter/LegacySmsAdapter.cs) triển khai `INotification` và giữ một `LegacySmsSender` được truyền vào constructor. Khi nhận `Send(message)`, Adapter gọi `_sender.SendText(message)`.
+
+### Luồng chạy
+
+1. `Program.cs` gọi `legacySms.Send("Đơn hàng đã được xác nhận")` qua `INotification`.
+2. `LegacySmsAdapter` chuyển lời gọi sang `LegacySmsSender.SendText(message)`.
+3. Console in `[Legacy SMS] Đơn hàng đã được xác nhận`.
+
+### Ưu điểm
+
+- Dùng lại code hoặc thư viện cũ và giữ nguyên cách gọi `Send()` của ứng dụng.
+- Gom phần chuyển đổi lời gọi hoặc dữ liệu vào một lớp.
+
+### Nhược điểm
+
+- Có thêm một lớp trung gian cần duy trì. Khi thư viện đổi API, có thể phải cập nhật Adapter.
+
+### Ứng dụng thực tế
+
+- Kết nối thư viện gửi SMS cũ với hệ thống thông báo hiện tại.
+- Kết nối cổng thanh toán của đối tác có `MakePayment()` với ứng dụng đang gọi `Pay()`.
